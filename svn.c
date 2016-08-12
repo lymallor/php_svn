@@ -945,7 +945,7 @@ PHP_FUNCTION(svn_cat)
 	}
 
 	retdata[size] = '\0';
-	RETVAL_STRINGL(retdata, size, 0);
+	RETVAL_STRINGL(retdata, size);
 	retdata = NULL;
 
 cleanup:
@@ -1643,9 +1643,9 @@ PHP_FUNCTION(svn_fs_revision_prop)
 		RETVAL_FALSE;
 	} else if (!str) {
 		/* the property is not found. return an empty string */
-		RETVAL_STRINGL("", 0, 1);
+		RETVAL_STRINGL("", 0);
 	} else {
-		RETVAL_STRINGL((char*)str->data, str->len, 1);
+		RETVAL_STRINGL((char*)str->data, str->len);
 	}
 
 	svn_pool_destroy(subpool);
@@ -1900,7 +1900,7 @@ PHP_FUNCTION(svn_fs_node_prop)
 		RETVAL_FALSE;
 	} else {
 		if (val != NULL && val->data != NULL) {
-			RETVAL_STRINGL((char *)val->data, val->len, 1);
+			RETVAL_STRINGL((char *)val->data, val->len);
 		} else {
 			RETVAL_EMPTY_STRING();
 		}
@@ -3112,9 +3112,9 @@ PHP_FUNCTION(svn_revprop_get)
 		RETVAL_FALSE;
 		goto cleanup;
 	} else if (!pval) {
-		RETVAL_STRINGL("", 0, 1);
+		RETVAL_STRINGL("", 0);
 	} else {
-		RETVAL_STRINGL((char*)pval->data, pval->len, 1);
+		RETVAL_STRINGL((char*)pval->data, pval->len);
 	}
 
 cleanup:
@@ -4693,9 +4693,9 @@ PHP_FUNCTION(svn_fs_txn_prop)
 		RETVAL_FALSE;
 	} else if (!str) {
 		/* the property is not found. return an empty string */
-		RETVAL_STRINGL("", 0, 1);
+		RETVAL_STRINGL("", 0);
 	} else {
-		RETVAL_STRINGL((char*)str->data, str->len, 1);
+		RETVAL_STRINGL((char*)str->data, str->len);
 	}
 
 	svn_pool_destroy(subpool);
