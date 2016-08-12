@@ -1614,7 +1614,7 @@ static apr_hash_t *replicate_zend_hash_to_apr_hash(zval *arr, apr_pool_t *pool T
 	Fetches the value of property propname at revision revnum in the filesystem. */
 PHP_FUNCTION(svn_fs_revision_prop)
 {
-	zval *zfs;
+	zend_resource *zfs;
 	long revnum;
 	struct php_svn_fs *fs;
 	svn_error_t *err;
@@ -1628,7 +1628,10 @@ PHP_FUNCTION(svn_fs_revision_prop)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(fs, struct php_svn_fs *, &zfs, -1, "svn-fs", le_svn_fs);
+	fs = (struct php_svn_fs *) zend_fetch_resource(zfs, "svn-fs", le_svn_fs);
+	if ( fs == NULL ) {
+		RETURN_FALSE;
+	}
 
 	subpool = svn_pool_create(SVN_G(pool));
 	if (!subpool) {
@@ -1654,7 +1657,7 @@ PHP_FUNCTION(svn_fs_revision_prop)
 	Returns the number of the youngest revision in the filesystem. */
 PHP_FUNCTION(svn_fs_youngest_rev)
 {
-	zval *zfs;
+	zend_resource *zfs;
 	struct php_svn_fs *fs;
 	svn_error_t *err;
 	svn_revnum_t revnum;
@@ -1664,7 +1667,10 @@ PHP_FUNCTION(svn_fs_youngest_rev)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(fs, struct php_svn_fs *, &zfs, -1, "svn-fs", le_svn_fs);
+	fs = (struct php_svn_fs *) zend_fetch_resource(zfs, "svn-fs", le_svn_fs);
+	if (fs == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_youngest_rev(&revnum, fs->fs, fs->repos->pool);
 
@@ -1682,7 +1688,7 @@ PHP_FUNCTION(svn_fs_youngest_rev)
 	Get a handle on a specific revision of the repository root. */
 PHP_FUNCTION(svn_fs_revision_root)
 {
-	zval *zfs;
+	zend_resource *zfs;
 	long revnum;
 	struct php_svn_fs *fs;
 	svn_fs_root_t *root;
@@ -1694,7 +1700,10 @@ PHP_FUNCTION(svn_fs_revision_root)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(fs, struct php_svn_fs *, &zfs, -1, "svn-fs", le_svn_fs);
+	fs = (struct php_svn_fs *) zend_fetch_resource(zfs, "svn-fs", le_svn_fs);
+	if (fs == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_revision_root(&root, fs->fs, revnum, fs->repos->pool);
 	if (err) {
@@ -1761,7 +1770,7 @@ static php_stream_ops php_svn_stream_ops = {
 	Returns a stream to access the contents of the file at path. */
 PHP_FUNCTION(svn_fs_file_contents)
 {
-	zval *zfsroot;
+	zend_resource *zfsroot;
 	struct php_svn_fs_root *fsroot;
 	const char *path = NULL;
 	const char *utf8_path = NULL;
@@ -1775,7 +1784,10 @@ PHP_FUNCTION(svn_fs_file_contents)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(fsroot, struct php_svn_fs_root*, &zfsroot, -1, "svn-fs-root", le_svn_fs_root);
+	fsroot = (struct php_svn_fs_root*) zend_fetch_resource(zfsroot, "svn-fs-root", le_svn_fs_root);
+	if (fsroot == NULL) {
+		RETURN_FALSE;
+	}
 
 	subpool = svn_pool_create(SVN_G(pool));
 	if (!subpool) {
@@ -1811,7 +1823,7 @@ cleanup:
 	Tthe length of the file path in fsroot, in bytes. */
 PHP_FUNCTION(svn_fs_file_length)
 {
-	zval *zfsroot;
+	zend_resource *zfsroot;
 	struct php_svn_fs_root *fsroot;
 	const char *path = NULL;
 	const char *utf8_path = NULL;
@@ -1825,7 +1837,10 @@ PHP_FUNCTION(svn_fs_file_length)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(fsroot, struct php_svn_fs_root*, &zfsroot, -1, "svn-fs-root", le_svn_fs_root);
+	fsroot = (struct php_svn_fs_root*) zend_fetch_resource(zfsroot, "svn-fs-root", le_svn_fs_root);
+	if (fsroot == NULL) {
+		RETURN_FALSE;
+	}
 
 	subpool = svn_pool_create(SVN_G(pool));
 	if (!subpool) {
@@ -1860,7 +1875,7 @@ cleanup:
 	Returns the value of property propname for a path. */
 PHP_FUNCTION(svn_fs_node_prop)
 {
-	zval *zfsroot;
+	zend_resource *zfsroot;
 	struct php_svn_fs_root *fsroot;
 	const char *path = NULL;
 	const char *utf8_path = NULL;
@@ -1875,7 +1890,10 @@ PHP_FUNCTION(svn_fs_node_prop)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(fsroot, struct php_svn_fs_root*, &zfsroot, -1, "svn-fs-root", le_svn_fs_root);
+	fsroot = (struct php_svn_fs_root*) zend_fetch_resource(zfsroot, "svn-fs-root", le_svn_fs_root);
+	if (fsroot == NULL) {
+		RETURN_FALSE;
+	}
 
 	subpool = svn_pool_create(SVN_G(pool));
 	if (!subpool) {
@@ -1914,7 +1932,7 @@ cleanup:
 	Returns the revision in which path under fsroot was created. */
 PHP_FUNCTION(svn_fs_node_created_rev)
 {
-	zval *zfsroot;
+	zend_resource *zfsroot;
 	struct php_svn_fs_root *fsroot;
 	const char *path = NULL;
 	const char *utf8_path = NULL;
@@ -1928,7 +1946,10 @@ PHP_FUNCTION(svn_fs_node_created_rev)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(fsroot, struct php_svn_fs_root*, &zfsroot, -1, "svn-fs-root", le_svn_fs_root);
+	fsroot = (struct php_svn_fs_root*) zend_fetch_resource(zfsroot, "svn-fs-root", le_svn_fs_root);
+	if (fsroot == NULL) {
+		RETURN_FALSE;
+	}
 
 	subpool = svn_pool_create(SVN_G(pool));
 	if (!subpool) {
@@ -1962,7 +1983,7 @@ cleanup:
 	Lists the entries at path, the key is the name and the value is the node type. */
 PHP_FUNCTION(svn_fs_dir_entries)
 {
-	zval *zfsroot;
+	zend_resource *zfsroot;
 	struct php_svn_fs_root *fsroot;
 	const char *path = NULL;
 	const char *utf8_path = NULL;
@@ -1981,7 +2002,10 @@ PHP_FUNCTION(svn_fs_dir_entries)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(fsroot, struct php_svn_fs_root*, &zfsroot, -1, "svn-fs-root", le_svn_fs_root);
+	fsroot = (struct php_svn_fs_root*) zend_fetch_resource(zfsroot, "svn-fs-root", le_svn_fs_root);
+	if (fsroot == NULL) {
+		RETURN_FALSE;
+	}
 
 	subpool = svn_pool_create(SVN_G(pool));
 	if (!subpool) {
@@ -2020,7 +2044,7 @@ cleanup:
 	Determines what kind of node is present at path in a given repository fsroot. */
 PHP_FUNCTION(svn_fs_check_path)
 {
-	zval *zfsroot;
+	zend_resource *zfsroot;
 	svn_node_kind_t kind;
 	struct php_svn_fs_root *fsroot;
 	const char *path = NULL;
@@ -2034,7 +2058,10 @@ PHP_FUNCTION(svn_fs_check_path)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(fsroot, struct php_svn_fs_root*, &zfsroot, -1, "svn-fs-root", le_svn_fs_root);
+	fsroot = (struct php_svn_fs_root*) zend_fetch_resource(zfsroot, "svn-fs-root", le_svn_fs_root);
+	if (fsroot == NULL) {
+		RETURN_FALSE;
+	}
 
 	subpool = svn_pool_create(SVN_G(pool));
 	if (!subpool) {
@@ -2070,14 +2097,17 @@ PHP_FUNCTION(svn_repos_fs)
 {
 	struct php_svn_repos *repos = NULL;
 	struct php_svn_fs *resource = NULL;
-	zval *zrepos;
+	zend_resource *zrepos;
 
 	if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r",
 				&zrepos)) {
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(repos, struct php_svn_repos *, &zrepos, -1, "svn-repos", le_svn_repos);
+	repos = (struct php_svn_repos *) zend_fetch_resource(zrepos, "svn-repos", le_svn_repos);
+	if (repos == NULL) {
+		RETURN_FALSE;
+	}
 
 	resource = emalloc(sizeof(*resource));
 	resource->repos = repos;
@@ -3932,7 +3962,7 @@ PHP_FUNCTION(svn_repos_fs_begin_txn_for_commit)
 {
 	svn_fs_txn_t *txn_p = NULL;
 	struct php_svn_repos_fs_txn *new_txn = NULL;
-	zval *zrepos;
+	zend_resource *zrepos;
 	struct php_svn_repos *repos = NULL;
 	svn_revnum_t rev;
 	char *author, *log_msg;
@@ -3945,7 +3975,10 @@ PHP_FUNCTION(svn_repos_fs_begin_txn_for_commit)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(repos, struct php_svn_repos *, &zrepos, -1, "svn-repos", le_svn_repos);
+	repos = (struct php_svn_repos *) zend_fetch_resource(zrepos, "svn-repos", le_svn_repos);
+	if (repos == NULL) {
+		RETURN_FALSE;
+	}
 
 	subpool = svn_pool_create(SVN_G(pool));
 	if (!subpool) {
@@ -3976,7 +4009,7 @@ PHP_FUNCTION(svn_repos_fs_begin_txn_for_commit)
 	Commits a transaction and returns the new revision */
 PHP_FUNCTION(svn_repos_fs_commit_txn)
 {
-	zval *ztxn;
+	zend_resource *ztxn;
 	struct php_svn_repos_fs_txn *txn;
 	const char *conflicts;
 	svn_revnum_t new_rev;
@@ -3987,7 +4020,10 @@ PHP_FUNCTION(svn_repos_fs_commit_txn)
 		RETURN_FALSE;
 	}
 
-	ZEND_FETCH_RESOURCE(txn, struct php_svn_repos_fs_txn *, &ztxn, -1, "svn-repos-fs-txn", le_svn_repos_fs_txn);
+	txn = (struct php_svn_repos_fs_txn *) zend_fetch_resource(ztxn, "svn-repos-fs-txn", le_svn_repos_fs_txn);
+	if (txn == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_repos_fs_commit_txn(&conflicts, txn->repos->repos, &new_rev, txn->txn, txn->repos->pool);
 
@@ -4006,7 +4042,7 @@ PHP_FUNCTION(svn_fs_txn_root)
 {
 	svn_fs_root_t *root_p = NULL;
 	struct php_svn_fs_root *new_root = NULL;
-	zval *ztxn;
+	zend_resource *ztxn;
 	struct php_svn_repos_fs_txn *txn = NULL;
 	svn_error_t *err;
 
@@ -4015,7 +4051,10 @@ PHP_FUNCTION(svn_fs_txn_root)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(txn, struct php_svn_repos_fs_txn *, &ztxn, -1, "svn-fs-repos-txn", le_svn_repos_fs_txn);
+	txn = (struct php_svn_repos_fs_txn *) zend_fetch_resource(ztxn, "svn-fs-repos-txn", le_svn_repos_fs_txn);
+	if (txn == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_txn_root(&root_p, txn->txn, txn->repos->pool);
 
@@ -4041,7 +4080,7 @@ PHP_FUNCTION(svn_fs_txn_root)
 	Create a new file named path in root, returns true on success, false otherwise */
 PHP_FUNCTION(svn_fs_make_file)
 {
-	zval *zroot;
+	zend_resource *zroot;
 	struct php_svn_fs_root *root = NULL;
 	const char *path = NULL, *utf8_path = NULL;
 	int path_len;
@@ -4066,7 +4105,10 @@ PHP_FUNCTION(svn_fs_make_file)
 	}
 	path = svn_path_canonicalize(utf8_path, subpool);
 
-	ZEND_FETCH_RESOURCE(root, struct php_svn_fs_root *, &zroot, -1, "svn-fs-root", le_svn_fs_root);
+	root = (struct php_svn_fs_root *) zend_fetch_resource(zroot, "svn-fs-root", le_svn_fs_root);
+	if (root == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_make_file(root->root, path, root->repos->pool);
 
@@ -4086,7 +4128,7 @@ cleanup:
 	Create a new directory named path in root, returns true on success, false otherwise */
 PHP_FUNCTION(svn_fs_make_dir)
 {
-	zval *zroot;
+	zend_resource *zroot;
 	struct php_svn_fs_root *root = NULL;
 	const char *path = NULL, *utf8_path = NULL;
 	int path_len;
@@ -4111,7 +4153,10 @@ PHP_FUNCTION(svn_fs_make_dir)
 	}
 	path = svn_path_canonicalize(utf8_path, subpool);
 
-	ZEND_FETCH_RESOURCE(root, struct php_svn_fs_root *, &zroot, -1, "svn-fs-root", le_svn_fs_root);
+	root = (struct php_svn_fs_root *) zend_fetch_resource(zroot, "svn-fs-root", le_svn_fs_root);
+	if (root == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_make_dir(root->root, path, root->repos->pool);
 
@@ -4133,7 +4178,7 @@ cleanup:
 	the content of an existing file. */
 PHP_FUNCTION(svn_fs_apply_text)
 {
-	zval *zroot;
+	zend_resource *zroot;
 	struct php_svn_fs_root *root = NULL;
 	const char *path = NULL, *utf8_path = NULL;
 	int path_len;
@@ -4159,7 +4204,10 @@ PHP_FUNCTION(svn_fs_apply_text)
 	}
 	path = svn_path_canonicalize(utf8_path, subpool);
 
-	ZEND_FETCH_RESOURCE(root, struct php_svn_fs_root *, &zroot, -1, "svn-fs-root", le_svn_fs_root);
+	root = (struct php_svn_fs_root *) zend_fetch_resource(zroot, "svn-fs-root", le_svn_fs_root);
+	if (root == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_apply_text(&stream_p, root->root, path, NULL, root->repos->pool);
 
@@ -4186,7 +4234,7 @@ cleanup:
 	Create a copy of from_path in from_root named to_path in to_root, returns true on success, false otherwise */
 PHP_FUNCTION(svn_fs_copy)
 {
-	zval *zfrom_root, *zto_root;
+	zend_resource *zfrom_root, *zto_root;
 	struct php_svn_fs_root *from_root, *to_root;
 	const char *from_path = NULL, *to_path = NULL;
 	const char *utf8_from_path = NULL, *utf8_to_path = NULL;
@@ -4221,8 +4269,14 @@ PHP_FUNCTION(svn_fs_copy)
 	from_path = svn_path_canonicalize(utf8_from_path, subpool);
 	to_path = svn_path_canonicalize(utf8_to_path, subpool);
 
-	ZEND_FETCH_RESOURCE(from_root, struct php_svn_fs_root *, &zfrom_root, -1, "svn-fs-root", le_svn_fs_root);
-	ZEND_FETCH_RESOURCE(to_root, struct php_svn_fs_root *, &zto_root, -1, "svn-fs-root", le_svn_fs_root);
+	from_root = (struct php_svn_fs_root *) zend_fetch_resource(zfrom_root, "svn-fs-root", le_svn_fs_root);
+	if (from_root == NULL) {
+		RETURN_FALSE;
+	}
+	to_root = (struct php_svn_fs_root *) zend_fetch_resource(zto_root, "svn-fs-root", le_svn_fs_root);
+	if (to_root == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_copy(from_root->root, from_path, to_root->root, to_path, to_root->repos->pool);
 
@@ -4242,7 +4296,7 @@ cleanup:
 	Delete the filesystem at path, return true on success, false otherwise */
 PHP_FUNCTION(svn_fs_delete)
 {
-	zval *zroot;
+	zend_resource *zroot;
 	struct php_svn_fs_root *root = NULL;
 	const char *path = NULL, *utf8_path = NULL;
 	int path_len;
@@ -4267,7 +4321,10 @@ PHP_FUNCTION(svn_fs_delete)
 	}
 	path = svn_path_canonicalize(utf8_path, subpool);
 
-	ZEND_FETCH_RESOURCE(root, struct php_svn_fs_root *, &zroot, -1, "svn-fs-root", le_svn_fs_root);
+	root = (struct php_svn_fs_root *) zend_fetch_resource(zroot, "svn-fs-root", le_svn_fs_root);
+	if (root == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_delete(root->root, path, root->repos->pool);
 
@@ -4289,7 +4346,7 @@ PHP_FUNCTION(svn_fs_begin_txn2)
 {
 	svn_fs_txn_t *txn_p = NULL;
 	struct php_svn_repos_fs_txn *new_txn = NULL;
-	zval *zfs;
+	zend_resource *zfs;
 	struct php_svn_fs *fs = NULL;
 	svn_revnum_t rev;
 	svn_error_t *err;
@@ -4299,7 +4356,10 @@ PHP_FUNCTION(svn_fs_begin_txn2)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(fs, struct php_svn_fs *, &zfs, -1, "svn-fs", le_svn_fs);
+	fs = (struct php_svn_fs *) zend_fetch_resource(zfs, "svn-fs", le_svn_fs);
+	if (fs == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_begin_txn2(&txn_p, fs->fs, rev, 0, SVN_G(pool));
 
@@ -4325,7 +4385,7 @@ PHP_FUNCTION(svn_fs_begin_txn2)
 	Returns true if path in root is a file, false otherwise */
 PHP_FUNCTION(svn_fs_is_file)
 {
-	zval *zroot;
+	zend_resource *zroot;
 	struct php_svn_fs_root *root = NULL;
 	const char *path = NULL, *utf8_path = NULL;
 	int path_len;
@@ -4352,7 +4412,10 @@ PHP_FUNCTION(svn_fs_is_file)
 
 	path = svn_path_canonicalize(utf8_path, subpool);
 
-	ZEND_FETCH_RESOURCE(root, struct php_svn_fs_root *, &zroot, -1, "svn-fs-root", le_svn_fs_root);
+	root = (struct php_svn_fs_root *) zend_fetch_resource(zroot, "svn-fs-root", le_svn_fs_root);
+	if (root == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_is_file(&is_file, root->root, path, root->repos->pool);
 
@@ -4372,7 +4435,7 @@ cleanup:
 	Returns true if path in root is a directory, false otherwise */
 PHP_FUNCTION(svn_fs_is_dir)
 {
-	zval *zroot;
+	zend_resource *zroot;
 	struct php_svn_fs_root *root = NULL;
 	const char *path = NULL, *utf8_path = NULL;
 	int path_len;
@@ -4398,7 +4461,10 @@ PHP_FUNCTION(svn_fs_is_dir)
 	}
 	path = svn_path_canonicalize(utf8_path, subpool);
 
-	ZEND_FETCH_RESOURCE(root, struct php_svn_fs_root *, &zroot, -1, "svn-fs-root", le_svn_fs_root);
+	root = (struct php_svn_fs_root *) zend_fetch_resource(zroot, "svn-fs-root", le_svn_fs_root);
+	if (root == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_is_dir(&is_dir, root->root, path, root->repos->pool);
 
@@ -4418,7 +4484,7 @@ cleanup:
 	Change a node's property's value, or add/delete a property. (use NULL as value to delete) Returns true on success. */
 PHP_FUNCTION(svn_fs_change_node_prop)
 {
-	zval *zroot, *value;
+	zend_resource *zroot, *value;
 	struct php_svn_fs_root *root = NULL;
 	const char *path = NULL, *utf8_path = NULL;
 	char *name;
@@ -4446,7 +4512,10 @@ PHP_FUNCTION(svn_fs_change_node_prop)
 	}
 	path = svn_path_canonicalize(utf8_path, subpool);
 
-	ZEND_FETCH_RESOURCE(root, struct php_svn_fs_root *, &zroot, -1, "svn-fs-root", le_svn_fs_root);
+	root = (struct php_svn_fs_root *) zend_fetch_resource(zroot, "svn-fs-root", le_svn_fs_root);
+	if (root == NULL) {
+		RETURN_FALSE;
+	}
 
 	if (Z_TYPE_P(value) != IS_NULL) {
 		str = zval_get_string(value);
@@ -4474,7 +4543,7 @@ cleanup:
 	Returns true if the contents at path1 under root1 differ from those at path2 under root2, or set it to 0 if they are the same */
 PHP_FUNCTION(svn_fs_contents_changed)
 {
-	zval *zroot1, *zroot2;
+	zend_resource *zroot1, *zroot2;
 	struct php_svn_fs_root *root1 = NULL, *root2 = NULL;
 	const char *path1 = NULL, *path2 = NULL;
 	const char *utf8_path1 = NULL, *utf8_path2 = NULL;
@@ -4510,8 +4579,14 @@ PHP_FUNCTION(svn_fs_contents_changed)
 	path1 = svn_path_canonicalize(utf8_path1, subpool);
 	path2 = svn_path_canonicalize(utf8_path2, subpool);
 
-	ZEND_FETCH_RESOURCE(root1, struct php_svn_fs_root *, &zroot1, -1, "svn-fs-root", le_svn_fs_root);
-	ZEND_FETCH_RESOURCE(root2, struct php_svn_fs_root *, &zroot2, -1, "svn-fs-root", le_svn_fs_root);
+	root1 = (struct php_svn_fs_root *) zend_fetch_resource(zroot1, "svn-fs-root", le_svn_fs_root);
+	if (root1 == NULL) {
+		RETURN_FALSE;
+	}
+	root2 = (struct php_svn_fs_root *) zend_fetch_resource(zroot2, "svn-fs-root", le_svn_fs_root);
+	if (root2 == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_contents_changed(&changed, root1->root, path1,
 			root2->root, path2,	root1->repos->pool);
@@ -4534,7 +4609,7 @@ cleanup:
 	Returns true if the properties of two path/root combinations are different, else false. */
 PHP_FUNCTION(svn_fs_props_changed)
 {
-	zval *zroot1, *zroot2;
+	zend_resource *zroot1, *zroot2;
 	struct php_svn_fs_root *root1 = NULL, *root2 = NULL;
 	const char *path1 = NULL, *path2 = NULL;
 	const char *utf8_path1 = NULL, *utf8_path2 = NULL;
@@ -4570,8 +4645,14 @@ PHP_FUNCTION(svn_fs_props_changed)
 	path1 = svn_path_canonicalize(utf8_path1, subpool);
 	path2 = svn_path_canonicalize(utf8_path2, subpool);
 
-	ZEND_FETCH_RESOURCE(root1, struct php_svn_fs_root *, &zroot1, -1, "svn-fs-root", le_svn_fs_root);
-	ZEND_FETCH_RESOURCE(root2, struct php_svn_fs_root *, &zroot2, -1, "svn-fs-root", le_svn_fs_root);
+	root1 = (struct php_svn_fs_root *) zend_fetch_resource(zroot1, "svn-fs-root", le_svn_fs_root);
+	if (root1 == NULL) {
+		RETURN_FALSE;
+	}
+	root2 = (struct php_svn_fs_root *) zend_fetch_resource(zroot2, "svn-fs-root", le_svn_fs_root);
+	if (root2 == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_props_changed(&changed, root1->root, path1,
 			root2->root, path2,	root1->repos->pool);
@@ -4594,7 +4675,7 @@ cleanup:
 	Aborts a transaction, returns true on success, false otherwise */
 PHP_FUNCTION(svn_fs_abort_txn)
 {
-	zval *ztxn;
+	zend_resource *ztxn;
 	struct php_svn_repos_fs_txn *txn;
 	svn_error_t *err;
 
@@ -4603,7 +4684,10 @@ PHP_FUNCTION(svn_fs_abort_txn)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(txn, struct php_svn_repos_fs_txn *, &ztxn, -1, "svn-repos-fs-txn", le_svn_repos_fs_txn);
+	txn = (struct php_svn_repos_fs_txn *) zend_fetch_resource(ztxn, "svn-repos-fs-txn", le_svn_repos_fs_txn);
+	if (txn == NULL) {
+		RETURN_FALSE;
+	}
 
 	err = svn_fs_abort_txn(txn->txn, txn->repos->pool);
 
@@ -4620,9 +4704,9 @@ PHP_FUNCTION(svn_fs_abort_txn)
 	Opens a transaction, returns a transaction resource on success, false otherwise */
 PHP_FUNCTION(svn_fs_open_txn)
 {
-	zval *zfs;
+	zend_resource *zfs;
 	struct php_svn_fs *fs;
-	zval *ztxn;
+	zend_resource *ztxn;
 	struct php_svn_repos_fs_txn *txn;
 	svn_error_t *err;
 	const char *name = NULL;
@@ -4634,7 +4718,10 @@ PHP_FUNCTION(svn_fs_open_txn)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(fs, struct php_svn_fs *, &zfs, -1, "svn-fs", le_svn_fs);
+	fs = (struct php_svn_fs *) zend_fetch_resource(zfs, "svn-fs", le_svn_fs);
+	if (fs == NULL) {
+		RETURN_FALSE;
+	}
 
 	subpool = svn_pool_create(SVN_G(pool));
 	if (!subpool) {
@@ -4666,7 +4753,7 @@ PHP_FUNCTION(svn_fs_open_txn)
 	Fetches the value of property propname at a transaction. */
 PHP_FUNCTION(svn_fs_txn_prop)
 {
-	zval *ztxn;
+	zend_resource *ztxn;
 	struct php_svn_repos_fs_txn *txn;
 	svn_error_t *err;
 	svn_string_t *str;
@@ -4679,7 +4766,10 @@ PHP_FUNCTION(svn_fs_txn_prop)
 		return;
 	}
 
-	ZEND_FETCH_RESOURCE(txn, struct php_svn_repos_fs_txn *, &ztxn, -1, "svn-repos-fs-txn", le_svn_repos_fs_txn);
+	txn = (struct php_svn_repos_fs_txn *) zend_fetch_resource(ztxn, "svn-repos-fs-txn", le_svn_repos_fs_txn);
+	if (txn == NULL) {
+		RETURN_FALSE;
+	}
 
 	subpool = svn_pool_create(SVN_G(pool));
 	if (!subpool) {
