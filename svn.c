@@ -448,7 +448,7 @@ PHP_FUNCTION(svn_auth_get_parameter)
 
 	value = svn_auth_get_parameter(SVN_G(ctx)->auth_baton, key);
 	if (value) {
-		RETVAL_STRING((char*)value, 1);
+		RETVAL_STRING((char*)value);
 	}
 }
 /* }}} */
@@ -3952,7 +3952,7 @@ PHP_FUNCTION(svn_client_version)
 	}
 
 	php_svn_get_version(vers, sizeof(vers));
-	RETURN_STRING(vers, 1);
+	RETURN_STRING(vers);
 }
 /* }}} */
 
