@@ -59,7 +59,7 @@ static void php_svn_get_version(char *buf, int buflen);
 /* True global resources - no need for thread safety here */
 
 struct php_svn_repos {
-	long rsrc_id;
+	zend_resource *rsrc_id;
 	apr_pool_t *pool;
 	svn_repos_t *repos;
 };
@@ -96,7 +96,7 @@ static int le_svn_repos_fs_txn;
 
 static ZEND_RSRC_DTOR_FUNC(php_svn_repos_dtor)
 {
-	struct php_svn_repos *r = rsrc->ptr;
+	struct php_svn_repos *r = res->ptr;
 	/* If root pool doesn't exist, then this resource's pool was already destroyed */
 	if (SVN_G(pool)) {
 		svn_pool_destroy(r->pool);
@@ -106,22 +106,22 @@ static ZEND_RSRC_DTOR_FUNC(php_svn_repos_dtor)
 
 static ZEND_RSRC_DTOR_FUNC(php_svn_fs_dtor)
 {
-	struct php_svn_fs *r = rsrc->ptr;
-	zend_list_delete(r->repos->rsrc_id);
+	struct php_svn_fs *r = res->ptr;
+	zend_list_close(r->repos->rsrc_id);
 	efree(r);
 }
 
 static ZEND_RSRC_DTOR_FUNC(php_svn_fs_root_dtor)
 {
-	struct php_svn_fs_root *r = rsrc->ptr;
-	zend_list_delete(r->repos->rsrc_id);
+	struct php_svn_fs_root *r = res->ptr;
+	zend_list_close(r->repos->rsrc_id);
 	efree(r);
 }
 
 static ZEND_RSRC_DTOR_FUNC(php_svn_repos_fs_txn_dtor)
 {
-	struct php_svn_repos_fs_txn *r = rsrc->ptr;
-	zend_list_delete(r->repos->rsrc_id);
+	struct php_svn_repos_fs_txn *r = res->ptr;
+	zend_list_close(r->repos->rsrc_id);
 	efree(r);
 }
 
