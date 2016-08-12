@@ -958,10 +958,14 @@ cleanup:
 
 static int compare_keys(const void *a, const void *b) /* {{{ */
 {
-	Bucket *f = *((Bucket **) a);
-	Bucket *s = *((Bucket **) b);
+	Bucket *f = (Bucket *) a;
+	Bucket *s = (Bucket *) b;
+	zval first, second;
 
-	return strcmp(f->arKey, s->arKey);
+	ZVAL_STR(&first, f->key);
+	ZVAL_STR(&second, s->key);
+
+	return string_compare_function(&first, &second);
 }
 
 
@@ -1087,10 +1091,14 @@ cleanup:
 
 static int compare_keys_as_paths(const void *a, const void *b)  /* {{{ */
 {
-	Bucket *f = *((Bucket **) a);
-	Bucket *s = *((Bucket **) b);
+	Bucket *f = (Bucket *) a;
+	Bucket *s = (Bucket *) b;
+	zval first, second;
 
-	return svn_sort_compare_paths(&(f->arKey), &(s->arKey));
+	ZVAL_STR(&first, f->key);
+	ZVAL_STR(&second, s->key);
+
+	return svn_sort_compare_paths( &first, &second );
 }
 
 static svn_error_t *
@@ -1582,14 +1590,14 @@ cleanup:
 }
 /* }}} */
 
-static int replicate_hash(void *pDest TSRMLS_DC, int num_args, va_list args, zend_hash_key *key)
+static int replicate_hash(void *pDest TSRMLS_DC, int num_args, va_list args, zend_hash_key *hash_key)
 {
-	zval **val = (zval **)pDest;
+	zval *val = (zval *)pDest;
 	apr_hash_t *hash = va_arg(args, apr_hash_t*);
 
-	if (key->nKeyLength && Z_TYPE_PP(val) == IS_STRING) {
+	if (ZSTR_LEN(hash_key->key) && Z_TYPE_P(val) == IS_STRING) {
 		/* apr doesn't want the NUL terminator in its keys */
-		apr_hash_set(hash, key->arKey, key->nKeyLength-1, Z_STRVAL_PP(val));
+		apr_hash_set(hash, hash_key->key, ZSTR_LEN(hash_key->key)-1, Z_STRVAL_PP(val));
 	}
 
 	va_end(args);
