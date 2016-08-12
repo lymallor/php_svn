@@ -1160,7 +1160,7 @@ php_svn_log_receiver (void *ibaton,
 			add_assoc_zval(paths, path, zpaths);
 		}
 
-		zend_hash_sort(Z_ARRVAL_P(paths), zend_qsort, compare_keys_as_paths, 1 TSRMLS_CC);
+		zend_hash_sort(Z_ARRVAL_P(paths), zend_qsort, compare_keys_as_paths);
 		add_assoc_zval(row,"paths",paths);
 	}
 
