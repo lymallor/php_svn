@@ -460,6 +460,7 @@ PHP_FUNCTION(svn_auth_set_parameter)
 	char *key, *actual_value = NULL;
 	zval *value;
 	int keylen;
+	zend_string *str;
 
 	if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz", &key, &keylen, &value)) {
 		return;
@@ -471,8 +472,9 @@ PHP_FUNCTION(svn_auth_set_parameter)
 	}
 
 	if (Z_TYPE_P(value) != IS_NULL) {
-		convert_to_string_ex(&value);
-		actual_value = Z_STRVAL_P(value);
+		str = zval_get_string(value);
+		actual_value = ZSTR_VAL(str);
+		zend_string_release(str);
 	}
 
 	svn_auth_set_parameter(SVN_G(ctx)->auth_baton, apr_pstrdup(SVN_G(pool), key), apr_pstrdup(SVN_G(pool), actual_value));
@@ -1063,7 +1065,6 @@ PHP_FUNCTION(svn_ls)
 			goto cleanup;
 		}
 
-		MAKE_STD_ZVAL(row);
 		array_init(row);
 		add_assoc_long(row,   "created_rev", 	(long) dirent->created_rev);
 		add_assoc_string(row, "last_author", 	dirent->last_author ? (char *) dirent->last_author : " ? ");
@@ -1110,7 +1111,6 @@ php_svn_log_receiver (void *ibaton,
 		return SVN_NO_ERROR;
 	}
 
-	MAKE_STD_ZVAL(row);
 	array_init(row);
 	add_assoc_long(row, "rev", (long) rev);
 
@@ -1127,7 +1127,6 @@ php_svn_log_receiver (void *ibaton,
 	if (changed_paths) {
 
 
-		MAKE_STD_ZVAL(paths);
 		array_init(paths);
 
 		for (hi = apr_hash_first(pool, changed_paths); hi; hi = apr_hash_next(hi)) {
@@ -1135,7 +1134,6 @@ php_svn_log_receiver (void *ibaton,
 			zval *zpaths;
 			const char *path;
 
-			MAKE_STD_ZVAL(zpaths);
 			array_init(zpaths);
 
 			apr_hash_this(hi, &path, NULL, &log_item);
@@ -1422,7 +1420,7 @@ PHP_FUNCTION(svn_diff)
 
 		/* 'bless' the apr files into streams and return those */
 		stm = php_stream_alloc(&php_apr_stream_ops, outfile, 0, "rw");
-		MAKE_STD_ZVAL(t);
+		array_init(t);
 		php_stream_to_zval(stm, t);
 		add_next_index_zval(return_value, t);
 
@@ -4428,6 +4426,7 @@ PHP_FUNCTION(svn_fs_change_node_prop)
 	svn_string_t *svn_value = NULL;
 	svn_error_t *err;
 	apr_pool_t *subpool;
+	zend_string *str;
 
 	if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rssz",
 				&zroot, &path, &path_len, &name, &name_len, &value)) {
@@ -4450,10 +4449,10 @@ PHP_FUNCTION(svn_fs_change_node_prop)
 	ZEND_FETCH_RESOURCE(root, struct php_svn_fs_root *, &zroot, -1, "svn-fs-root", le_svn_fs_root);
 
 	if (Z_TYPE_P(value) != IS_NULL) {
-		convert_to_string_ex(&value);
-		svn_value = emalloc(sizeof(*svn_value));
-		svn_value->data = Z_STRVAL_P(value);
-		svn_value->len  = Z_STRLEN_P(value);
+		str = zval_get_string(value);
+		svn_value->data = ZSTR_VAL(str);
+		svn_value->len  = ZSTR_LEN(str);
+		zend_string_release(str);
 	}
 
 	err = svn_fs_change_node_prop(root->root, path, name, svn_value,
