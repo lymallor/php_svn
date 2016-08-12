@@ -948,7 +948,6 @@ PHP_FUNCTION(svn_cat)
 
 	retdata[size] = '\0';
 	RETVAL_STRINGL(retdata, size);
-	retdata = NULL;
 
 cleanup:
 	svn_pool_destroy(subpool);
@@ -1160,8 +1159,8 @@ php_svn_log_receiver (void *ibaton,
 			add_assoc_zval(paths, path, zpaths);
 		}
 
-		zend_hash_sort(Z_ARRVAL_P(paths), zend_qsort, compare_keys_as_paths);
-		add_assoc_zval(row,"paths",paths);
+		zend_hash_sort_ex(Z_ARRVAL_P(paths), zend_qsort, compare_keys_as_paths, 1);
+		add_assoc_zval(row, "paths", paths);
 	}
 
 	add_next_index_zval(baton->result, row);
@@ -1433,7 +1432,7 @@ PHP_FUNCTION(svn_diff)
 		add_next_index_zval(return_value, t);
 
 		stm = php_stream_alloc(&php_apr_stream_ops, errfile, 0, "rw");
-		MAKE_STD_ZVAL(t);
+		array_init(t);
 		php_stream_to_zval(stm, t);
 		add_next_index_zval(return_value, t);
 	}
@@ -2178,42 +2177,41 @@ PHP_FUNCTION(svn_repos_open)
 
 static svn_error_t *info_func (void *baton, const char *path, const svn_info_t *info, apr_pool_t *pool) {
 	zval *return_value = (zval*)baton;
-	zval *entry;
+	zval entry;
 	TSRMLS_FETCH();
 
-	MAKE_STD_ZVAL(entry);
-	array_init(entry);
+	array_init(&entry);
 
-	add_assoc_string(entry, "path", (char*)path);
+	add_assoc_string(&entry, "path", (char*)path);
 	if (info) {
 		if (info->URL) {
-			add_assoc_string(entry, "url", (char *)info->URL);
+			add_assoc_string(&entry, "url", (char *)info->URL);
 		}
 
-		add_assoc_long(entry, "revision", info->rev);
-		add_assoc_long(entry, "kind", info->kind);
+		add_assoc_long(&entry, "revision", info->rev);
+		add_assoc_long(&entry, "kind", info->kind);
 
 		if (info->repos_root_URL) {
-			add_assoc_string(entry, "repos", (char *)info->repos_root_URL);
+			add_assoc_string(&entry, "repos", (char *)info->repos_root_URL);
 		}
 
-		add_assoc_long(entry, "last_changed_rev", info->last_changed_rev);
-		add_assoc_string(entry, "last_changed_date", (char *) svn_time_to_cstring(info->last_changed_date, pool));
+		add_assoc_long(&entry, "last_changed_rev", info->last_changed_rev);
+		add_assoc_string(&entry, "last_changed_date", (char *) svn_time_to_cstring(info->last_changed_date, pool));
 
 		if (info->last_changed_author) {
-			add_assoc_string(entry, "last_changed_author", (char *)info->last_changed_author);
+			add_assoc_string(&entry, "last_changed_author", (char *)info->last_changed_author);
 		}
 
 		if (info->lock) {
-			add_assoc_bool(entry, "locked", 1);
+			add_assoc_bool(&entry, "locked", 1);
 		}
 
 		if (info->has_wc_info) {
-			add_assoc_bool(entry, "is_working_copy", 1);
+			add_assoc_bool(&entry, "is_working_copy", 1);
 		}
 	}
 
-	add_next_index_zval(return_value, entry);
+	add_next_index_zval(return_value, &entry);
 
 	return NULL;
 }
@@ -2507,7 +2505,8 @@ php_svn_blame_message_receiver (void *baton,
 				const char *line,
 				apr_pool_t *pool)
 {
-	zval *return_value = (zval *)baton, *row;
+	zval *return_value = (zval *)baton;
+	zval row;
 
 	TSRMLS_FETCH();
 
@@ -2515,23 +2514,22 @@ php_svn_blame_message_receiver (void *baton,
 		return SVN_NO_ERROR;
 	}
 
-	MAKE_STD_ZVAL(row);
-	array_init(row);
+	array_init(&row);
 
 
-	add_assoc_long(row, "rev", (long) rev);
-	add_assoc_long(row, "line_no", line_no + 1);
-	add_assoc_string(row, "line", (char *) line);
+	add_assoc_long(&row, "rev", (long) rev);
+	add_assoc_long(&row, "line_no", line_no + 1);
+	add_assoc_string(&row, "line", (char *) line);
 
 	if (author) {
-		add_assoc_string(row, "author", (char *) author);
+		add_assoc_string(&row, "author", (char *) author);
 	}
 	if (date) {
-		add_assoc_string(row, "date", (char *) date);
+		add_assoc_string(&row, "date", (char *) date);
 	}
 
 
-	add_next_index_zval(return_value, row);
+	add_next_index_zval(return_value, &row);
 	return SVN_NO_ERROR;
 }
 
@@ -2879,11 +2877,10 @@ PHP_FUNCTION(svn_proplist)
 		for (i = 0; i < props->nelts; ++i) {
 			svn_client_proplist_item_t *item
 				= ((svn_client_proplist_item_t **)props->elts)[i];
-			zval *row;
+			zval row;
 			apr_hash_index_t *hi;
 
-			MAKE_STD_ZVAL(row);
-			array_init(row);
+			array_init(&row);
 			for (hi = apr_hash_first(subpool, item->prop_hash); hi; hi = apr_hash_next(hi)) {
 				const void *key;
 				void *val;
@@ -2894,9 +2891,9 @@ PHP_FUNCTION(svn_proplist)
 				pname = key;
 				propval = val;
 
-				add_assoc_stringl(row, (char *)pname, (char *)propval->data, propval->len);
+				add_assoc_stringl(&row, (char *)pname, (char *)propval->data, propval->len);
 			}
-			add_assoc_zval(return_value, (char *)svn_path_local_style(item->node_name->data, subpool), row);
+			add_assoc_zval(return_value, (char *)svn_path_local_style(item->node_name->data, subpool), &row);
 		}
 	}
 
@@ -2963,16 +2960,15 @@ PHP_FUNCTION(svn_propget)
 			void *val;
 			const char *pname;
 			svn_string_t *propval;
-			zval *row;
+			zval row;
 
-			MAKE_STD_ZVAL(row);
-			array_init(row);
+			array_init(&row);
 			apr_hash_this(hi, &key, NULL, &val);
 			pname = key;
 			propval = val;
 
-			add_assoc_stringl(row, (char *)propname, (char *)propval->data, propval->len);
-			add_assoc_zval(return_value, (char *)svn_path_local_style(pname, subpool), row);
+			add_assoc_stringl(&row, (char *)propname, (char *)propval->data, propval->len);
+			add_assoc_zval(return_value, (char *)svn_path_local_style(pname, subpool), &row);
 		}
 	}
 
@@ -3429,11 +3425,11 @@ cleanup:
 
 static int replicate_array(void *pDest TSRMLS_DC, int num_args, va_list args, zend_hash_key *key)
 {
-	zval **val = (zval **)pDest;
+	zval *val = (zval *)pDest;
 	apr_pool_t *pool = (apr_pool_t*)va_arg(args, apr_pool_t*);
 	apr_array_header_t *arr = (apr_array_header_t*)va_arg(args, apr_array_header_t*);
 
-	if (Z_TYPE_PP(val) == IS_STRING) {
+	if (Z_TYPE_P(val) == IS_STRING) {
 		APR_ARRAY_PUSH(arr, const char*) = apr_pstrdup(pool, Z_STRVAL_PP(val));
 	}
 
@@ -3698,61 +3694,60 @@ cleanup:
 static void php_svn_status_receiver(void *baton, const char *path, svn_wc_status2_t *status)
 {
 	zval *return_value = (zval*)baton;
-	zval *entry;
+	zval entry;
 	TSRMLS_FETCH();
 
-	MAKE_STD_ZVAL(entry);
-	array_init(entry);
+	array_init(&entry);
 
-	add_assoc_string(entry, "path", (char*)path);
+	add_assoc_string(&entry, "path", (char*)path);
 	if (status) {
-		add_assoc_long(entry, "text_status", status->text_status);
-		add_assoc_long(entry, "repos_text_status", status->repos_text_status);
-		add_assoc_long(entry, "prop_status", status->prop_status);
-		add_assoc_long(entry, "repos_prop_status", status->repos_prop_status);
-		add_assoc_bool(entry, "locked", status->locked);
-		add_assoc_bool(entry, "copied", status->copied);
-		add_assoc_bool(entry, "switched", status->switched);
+		add_assoc_long(&entry, "text_status", status->text_status);
+		add_assoc_long(&entry, "repos_text_status", status->repos_text_status);
+		add_assoc_long(&entry, "prop_status", status->prop_status);
+		add_assoc_long(&entry, "repos_prop_status", status->repos_prop_status);
+		add_assoc_bool(&entry, "locked", status->locked);
+		add_assoc_bool(&entry, "copied", status->copied);
+		add_assoc_bool(&entry, "switched", status->switched);
 
 		if (status->entry) {
 			if (status->entry->name) {
-				add_assoc_string(entry, "name", (char*)status->entry->name);
+				add_assoc_string(&entry, "name", (char*)status->entry->name);
 			}
 			if (status->entry->url) {
-				add_assoc_string(entry, "url", (char*)status->entry->url);
+				add_assoc_string(&entry, "url", (char*)status->entry->url);
 			}
 			if (status->entry->repos) {
-				add_assoc_string(entry, "repos", (char*)status->entry->repos);
+				add_assoc_string(&entry, "repos", (char*)status->entry->repos);
 			}
 
-			add_assoc_long(entry, "revision", status->entry->revision);
-			add_assoc_long(entry, "kind", status->entry->kind);
-			add_assoc_long(entry, "schedule", status->entry->schedule);
-			if (status->entry->deleted) add_assoc_bool(entry, "deleted", status->entry->deleted);
-			if (status->entry->absent) add_assoc_bool(entry, "absent", status->entry->absent);
-			if (status->entry->incomplete) add_assoc_bool(entry, "incomplete", status->entry->incomplete);
+			add_assoc_long(&entry, "revision", status->entry->revision);
+			add_assoc_long(&entry, "kind", status->entry->kind);
+			add_assoc_long(&entry, "schedule", status->entry->schedule);
+			if (status->entry->deleted) add_assoc_bool(&entry, "deleted", status->entry->deleted);
+			if (status->entry->absent) add_assoc_bool(&entry, "absent", status->entry->absent);
+			if (status->entry->incomplete) add_assoc_bool(&entry, "incomplete", status->entry->incomplete);
 
 			if (status->entry->copyfrom_url) {
-				add_assoc_string(entry, "copyfrom_url", (char*)status->entry->copyfrom_url);
-				add_assoc_long(entry, "copyfrom_rev", status->entry->copyfrom_rev);
+				add_assoc_string(&entry, "copyfrom_url", (char*)status->entry->copyfrom_url);
+				add_assoc_long(&entry, "copyfrom_rev", status->entry->copyfrom_rev);
 			}
 
 			if (status->entry->cmt_author) {
-				add_assoc_long(entry, "cmt_date", apr_time_sec(status->entry->cmt_date));
-				add_assoc_long(entry, "cmt_rev", status->entry->cmt_rev);
-				add_assoc_string(entry, "cmt_author", (char*)status->entry->cmt_author);
+				add_assoc_long(&entry, "cmt_date", apr_time_sec(status->entry->cmt_date));
+				add_assoc_long(&entry, "cmt_rev", status->entry->cmt_rev);
+				add_assoc_string(&entry, "cmt_author", (char*)status->entry->cmt_author);
 			}
 			if (status->entry->prop_time) {
-				add_assoc_long(entry, "prop_time", apr_time_sec(status->entry->prop_time));
+				add_assoc_long(&entry, "prop_time", apr_time_sec(status->entry->prop_time));
 			}
 
 			if (status->entry->text_time) {
-				add_assoc_long(entry, "text_time", apr_time_sec(status->entry->text_time));
+				add_assoc_long(&entry, "text_time", apr_time_sec(status->entry->text_time));
 			}
 		}
 	}
 
-	add_next_index_zval(return_value, entry);
+	add_next_index_zval(return_value, &entry);
 }
 
 /* {{{ proto array svn_status(string path [, int flags]])
