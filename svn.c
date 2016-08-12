@@ -1708,7 +1708,7 @@ PHP_FUNCTION(svn_fs_revision_root)
 	resource->root = root;
 	resource->repos = fs->repos;
 	zend_list_addref(fs->repos->rsrc_id);
-	ZEND_REGISTER_RESOURCE(return_value, resource, le_svn_fs_root);
+	RETURN_RES(zend_register_resource(resource, le_svn_fs_root));
 }
 /* }}} */
 
@@ -2086,7 +2086,7 @@ PHP_FUNCTION(svn_repos_fs)
 	zend_list_addref(repos->rsrc_id);
 	resource->fs = svn_repos_fs(repos->repos);
 
-	ZEND_REGISTER_RESOURCE(return_value, resource, le_svn_fs);
+	RETURN_RES(zend_register_resource(resource, le_svn_fs));
 }
 /* }}} */
 
@@ -2132,7 +2132,7 @@ PHP_FUNCTION(svn_repos_open)
 		resource = emalloc(sizeof(*resource));
 		resource->pool = subpool;
 		resource->repos = repos;
-		ZEND_REGISTER_RESOURCE(return_value, resource, le_svn_repos);
+		RETURN_RES(zend_register_resource(resource, le_svn_repos));
 	} else {
 		svn_pool_destroy(subpool);
 		RETURN_FALSE;
@@ -3286,7 +3286,7 @@ PHP_FUNCTION(svn_repos_create)
 		resource = emalloc(sizeof(*resource));
 		resource->pool = subpool;
 		resource->repos = repos;
-		ZEND_REGISTER_RESOURCE(return_value, resource, le_svn_repos);
+		RETURN_RES(zend_register_resource(resource, le_svn_repos));
 	} else {
 		svn_pool_destroy(subpool);
 		RETURN_FALSE;
@@ -3966,7 +3966,7 @@ PHP_FUNCTION(svn_repos_fs_begin_txn_for_commit)
 		zend_list_addref(repos->rsrc_id);
 		new_txn->txn = txn_p;
 
-		ZEND_REGISTER_RESOURCE(return_value, new_txn, le_svn_repos_fs_txn);
+		RETURN_RES(zend_register_resource(new_txn, le_svn_repos_fs_txn));
 	} else {
 		svn_pool_destroy(subpool);
 		RETURN_FALSE;
@@ -4032,7 +4032,7 @@ PHP_FUNCTION(svn_fs_txn_root)
 		zend_list_addref(txn->repos->rsrc_id);
 		new_root->root = root_p;
 
-		ZEND_REGISTER_RESOURCE(return_value, new_root, le_svn_fs_root);
+		RETURN_RES(zend_register_resource(new_root, le_svn_fs_root));
 	} else {
 		RETURN_FALSE;
 	}
@@ -4316,7 +4316,7 @@ PHP_FUNCTION(svn_fs_begin_txn2)
 		zend_list_addref(fs->repos->rsrc_id);
 		new_txn->txn = txn_p;
 
-		ZEND_REGISTER_RESOURCE(return_value, new_txn, le_svn_repos_fs_txn);
+		RETURN_RES(zend_register_resource(new_txn, le_svn_repos_fs_txn));
 	} else {
 		RETURN_FALSE;
 	}
@@ -4654,7 +4654,7 @@ PHP_FUNCTION(svn_fs_open_txn)
 		zend_list_addref(fs->repos->rsrc_id);
 		new_txn->txn = txn;
 
-		ZEND_REGISTER_RESOURCE(return_value, new_txn, le_svn_repos_fs_txn);
+		RETURN_RES(zend_register_resource(new_txn, le_svn_repos_fs_txn));
 	} else {
 		RETVAL_FALSE;
 	}
