@@ -1596,7 +1596,7 @@ static int replicate_hash(void *pDest TSRMLS_DC, int num_args, va_list args, zen
 
 	if (ZSTR_LEN(hash_key->key) && Z_TYPE_P(val) == IS_STRING) {
 		/* apr doesn't want the NUL terminator in its keys */
-		apr_hash_set(hash, hash_key->key, ZSTR_LEN(hash_key->key)-1, Z_STRVAL_PP(val));
+		apr_hash_set(hash, hash_key->key, ZSTR_LEN(hash_key->key)-1, Z_STRVAL_P(val));
 	}
 
 	va_end(args);
@@ -4487,7 +4487,8 @@ cleanup:
 	Change a node's property's value, or add/delete a property. (use NULL as value to delete) Returns true on success. */
 PHP_FUNCTION(svn_fs_change_node_prop)
 {
-	zend_resource *zroot, *value;
+	zend_resource *zroot;
+	zval *value;
 	struct php_svn_fs_root *root = NULL;
 	const char *path = NULL, *utf8_path = NULL;
 	char *name;
