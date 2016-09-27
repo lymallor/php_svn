@@ -1039,7 +1039,7 @@ PHP_FUNCTION(svn_ls)
 		zval 	*row;
 		const char *key;
 
-		apr_hash_this(hi, &key, NULL, &dirent);
+		apr_hash_this(hi, (const void **)&key, NULL, (void *)&dirent);
 		svn_utf_cstring_to_utf8 (&utf8_entryname, key, subpool);
 
 		/* svn_time_to_human_cstring gives us something *way* too long
@@ -1143,10 +1143,10 @@ php_svn_log_receiver (void *ibaton,
 
 			array_init(zpaths);
 
-			apr_hash_this(hi, &path, NULL, &log_item);
+			apr_hash_this(hi, (const void **)&path, NULL, (void *)&log_item);
 
 			add_assoc_stringl(zpaths, "action", &(log_item->action), 1);
-			add_assoc_string(zpaths, "path", path);
+			add_assoc_string(zpaths, "path", (char *)path);
 
 			if (log_item->copyfrom_path
 					&& SVN_IS_VALID_REVNUM (log_item->copyfrom_rev)) {
@@ -1589,9 +1589,8 @@ cleanup:
 }
 /* }}} */
 
-static int replicate_hash(void *pDest TSRMLS_DC, int num_args, va_list args, zend_hash_key *hash_key)
+static int replicate_hash(zval *val TSRMLS_DC, int num_args, va_list args, zend_hash_key *hash_key)
 {
-	zval *val = (zval *)pDest;
 	apr_hash_t *hash = va_arg(args, apr_hash_t*);
 
 	if (ZSTR_LEN(hash_key->key) && Z_TYPE_P(val) == IS_STRING) {
@@ -2613,7 +2612,8 @@ cleanup:
 	Delete items from a working copy or repository. */
 PHP_FUNCTION(svn_delete)
 {
-	const char *path = NULL, *utf8_path = NULL, *logmsg = NULL;
+	const char *path = NULL, *utf8_path = NULL;
+	char *logmsg = NULL;
 	size_t pathlen, logmsg_len;
 	apr_pool_t *subpool;
 	zend_bool force = 0;
@@ -2887,7 +2887,7 @@ PHP_FUNCTION(svn_proplist)
 				const char *pname;
 				svn_string_t *propval;
 
-				apr_hash_this(hi, &key, NULL, &val);
+				apr_hash_this(hi, (const void **)&key, NULL, &val);
 				pname = key;
 				propval = val;
 
@@ -2963,7 +2963,7 @@ PHP_FUNCTION(svn_propget)
 			zval row;
 
 			array_init(&row);
-			apr_hash_this(hi, &key, NULL, &val);
+			apr_hash_this(hi, (const void **)&key, NULL, &val);
 			pname = key;
 			propval = val;
 
@@ -3423,14 +3423,13 @@ cleanup:
 }
 /* }}} */
 
-static int replicate_array(void *pDest TSRMLS_DC, int num_args, va_list args, zend_hash_key *key)
+static int replicate_array(zval *val TSRMLS_DC, int num_args, va_list args, zend_hash_key *key)
 {
-	zval *val = (zval *)pDest;
 	apr_pool_t *pool = (apr_pool_t*)va_arg(args, apr_pool_t*);
 	apr_array_header_t *arr = (apr_array_header_t*)va_arg(args, apr_array_header_t*);
 
 	if (Z_TYPE_P(val) == IS_STRING) {
-		APR_ARRAY_PUSH(arr, const char*) = apr_pstrdup(pool, Z_STRVAL_PP(val));
+		APR_ARRAY_PUSH(arr, const char*) = apr_pstrdup(pool, Z_STRVAL_P(val));
 	}
 
 	va_end(args);
@@ -4711,7 +4710,7 @@ PHP_FUNCTION(svn_fs_open_txn)
 	zval *zfs;
 	struct php_svn_fs *fs;
 	zend_resource *ztxn;
-	struct php_svn_repos_fs_txn *txn;
+	struct svn_fs_txn_t *txn;
 	svn_error_t *err;
 	const char *name = NULL;
 	size_t name_len;
@@ -4732,7 +4731,7 @@ PHP_FUNCTION(svn_fs_open_txn)
 		RETURN_FALSE;
 	}
 
-	err = svn_fs_open_txn (&txn, fs->fs, name, subpool);
+	err = svn_fs_open_txn(&txn, fs->fs, name, subpool);
 	if (err) {
 		php_svn_handle_error(err TSRMLS_CC);
 		RETVAL_FALSE;
