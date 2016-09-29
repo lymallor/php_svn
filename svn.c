@@ -1340,7 +1340,7 @@ PHP_FUNCTION(svn_diff)
 	svn_opt_revision_t revision1, revision2;
 	zend_bool ignore_content_type = 0;
 
-	if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl!sl!",
+	if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "slsl",
 			&path1, &path1len, &rev1,
 			&path2, &path2len, &rev2)) {
 		return;
@@ -1415,7 +1415,7 @@ PHP_FUNCTION(svn_diff)
 		apr_file_close(outfile);
 		php_svn_handle_error(err TSRMLS_CC);
 	} else {
-		zval *t;
+		zval t1, t2;
 		php_stream *stm = NULL;
 		apr_off_t off = (apr_off_t)0;
 
@@ -1427,14 +1427,12 @@ PHP_FUNCTION(svn_diff)
 
 		/* 'bless' the apr files into streams and return those */
 		stm = php_stream_alloc(&php_apr_stream_ops, outfile, 0, "rw");
-		array_init(t);
-		php_stream_to_zval(stm, t);
-		add_next_index_zval(return_value, t);
+		php_stream_to_zval(stm, &t1);
+		add_next_index_zval(return_value, &t1);
 
 		stm = php_stream_alloc(&php_apr_stream_ops, errfile, 0, "rw");
-		array_init(t);
-		php_stream_to_zval(stm, t);
-		add_next_index_zval(return_value, t);
+		php_stream_to_zval(stm, &t2);
+		add_next_index_zval(return_value, &t2);
 	}
 
 cleanup:
