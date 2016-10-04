@@ -1036,7 +1036,7 @@ PHP_FUNCTION(svn_ls)
 		apr_size_t size;
 		char timestr[20];
 		const char   *utf8_timestr;
-		zval 	*row;
+		zval 	row;
 		const char *key;
 
 		apr_hash_this(hi, (const void **)&key, NULL, (void *)&dirent);
@@ -1068,18 +1068,18 @@ PHP_FUNCTION(svn_ls)
 			goto cleanup;
 		}
 
-		array_init(row);
-		add_assoc_long(row,   "created_rev", 	(long) dirent->created_rev);
-		add_assoc_string(row, "last_author", 	dirent->last_author ? (char *) dirent->last_author : " ? ");
-		add_assoc_long(row,   "size", 		dirent->size);
-		add_assoc_string(row, "time", 		timestr);
-		add_assoc_long(row,   "time_t", 	apr_time_sec(dirent->time));
+		array_init(&row);
+		add_assoc_long(&row,   "created_rev", 	(long) dirent->created_rev);
+		add_assoc_string(&row, "last_author", 	dirent->last_author ? (char *) dirent->last_author : " ? ");
+		add_assoc_long(&row,   "size", 		dirent->size);
+		add_assoc_string(&row, "time", 		timestr);
+		add_assoc_long(&row,   "time_t", 	apr_time_sec(dirent->time));
 		/* this doesnt have a matching struct name */
-		add_assoc_string(row, "name", 		(char *) utf8_entryname);
+		add_assoc_string(&row, "name", 		(char *) utf8_entryname);
 		/* should this be a integer or something? - not very clear though.*/
-		add_assoc_string(row, "type", 		(dirent->kind == svn_node_dir) ? "dir" : "file");
+		add_assoc_string(&row, "type", 		(dirent->kind == svn_node_dir) ? "dir" : "file");
 
-		add_assoc_zval(return_value, (char *)utf8_entryname, row);
+		add_assoc_zval(return_value, (char *)utf8_entryname, &row);
 	}
 
 cleanup:
@@ -1110,7 +1110,7 @@ php_svn_log_receiver (void *ibaton,
 				apr_pool_t *pool)
 {
 	struct php_svn_log_receiver_baton *baton = (struct php_svn_log_receiver_baton*) ibaton;
-	zval  *row, *paths;
+	zval  row, paths;
 	apr_hash_index_t *hi;
 	TSRMLS_FETCH();
 
@@ -1118,52 +1118,52 @@ php_svn_log_receiver (void *ibaton,
 		return SVN_NO_ERROR;
 	}
 
-	array_init(row);
-	add_assoc_long(row, "rev", (long) rev);
+	array_init(&row);
+	add_assoc_long(&row, "rev", (long) rev);
 
 	if (author) {
-		add_assoc_string(row, "author", (char *) author);
+		add_assoc_string(&row, "author", (char *) author);
 	}
 	if (!baton->omit_messages && msg) {
-		add_assoc_string(row, "msg", (char *) msg);
+		add_assoc_string(&row, "msg", (char *) msg);
 	}
 	if (date) {
-		add_assoc_string(row, "date", (char *) date);
+		add_assoc_string(&row, "date", (char *) date);
 	}
 
 	if (changed_paths) {
 
 
-		array_init(paths);
+		array_init(&paths);
 
 		for (hi = apr_hash_first(pool, changed_paths); hi; hi = apr_hash_next(hi)) {
 			svn_log_changed_path_t *log_item;
-			zval *zpaths;
+			zval zpaths;
 			const char *path;
 
-			array_init(zpaths);
+			array_init(&zpaths);
 
 			apr_hash_this(hi, (const void **)&path, NULL, (void *)&log_item);
 
-			add_assoc_stringl(zpaths, "action", &(log_item->action), 1);
-			add_assoc_string(zpaths, "path", (char *)path);
+			add_assoc_stringl(&zpaths, "action", &(log_item->action), 1);
+			add_assoc_string(&zpaths, "path", (char *)path);
 
 			if (log_item->copyfrom_path
 					&& SVN_IS_VALID_REVNUM (log_item->copyfrom_rev)) {
-				add_assoc_string(zpaths, "copyfrom", (char *) log_item->copyfrom_path);
-				add_assoc_long(zpaths, "rev", (long) log_item->copyfrom_rev);
+				add_assoc_string(&zpaths, "copyfrom", (char *) log_item->copyfrom_path);
+				add_assoc_long(&zpaths, "rev", (long) log_item->copyfrom_rev);
 			} else {
 
 			}
 
-			add_assoc_zval(paths, path, zpaths);
+			add_assoc_zval(&paths, path, &zpaths);
 		}
 
-		zend_hash_sort_ex(Z_ARRVAL_P(paths), zend_qsort, compare_keys_as_paths, 1);
-		add_assoc_zval(row, "paths", paths);
+		zend_hash_sort_ex(Z_ARRVAL_P(&paths), zend_qsort, compare_keys_as_paths, 1);
+		add_assoc_zval(&row, "paths", &paths);
 	}
 
-	add_next_index_zval(baton->result, row);
+	add_next_index_zval(baton->result, &row);
 	return SVN_NO_ERROR;
 }
 
