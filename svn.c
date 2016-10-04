@@ -260,7 +260,7 @@ zend_module_entry svn_module_entry = {
 	"svn",
 	svn_functions,
 	PHP_MINIT(svn),
-	NULL,
+	PHP_MSHUTDOWN(svn),
 	NULL,
 	PHP_RSHUTDOWN(svn),
 	PHP_MINFO(svn),
@@ -576,6 +576,14 @@ cleanup:
 	svn_pool_destroy(subpool);
 }
 /* }}} */
+
+/* {{{ PHP_MSHUTDOWN_FUNCTION }}} */
+PHP_MSHUTDOWN_FUNCTION(svn)
+{
+	apr_terminate2(); // Cleanup, because serf does not cleanup
+
+	return SUCCESS;
+}
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(svn)
